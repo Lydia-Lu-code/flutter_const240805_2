@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, library_private_types_in_public_api, prefer_const_declarations, use_super_parameters, prefer_const_constructors, sort_child_properties_last
-
 import 'package:flutter/material.dart';
 import 'movie_data.dart'; // 導入 movie_data.dart 檔案
 
@@ -29,8 +27,6 @@ class _MovieState extends State<Movie> {
   // 當前選中的電影類型
   MovieType _selectedMovieType = MovieType.Action;
 
-
-
   @override
   Widget build(BuildContext context) {
     // 定義一個 List 來存儲 MovieType 的實例
@@ -41,63 +37,72 @@ class _MovieState extends State<Movie> {
         title: const Text('Movies'),
         backgroundColor: Colors.pink[100], // 設置 AppBar 的背景色為馬卡龍粉色
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // 包裝 SizedBox 的 Container，增加背景色
-          Container(
-            height: 60,
-            color: Colors.yellow[100], // 設置背景色為馬卡龍黃色
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: movieTypes.length,
-              itemBuilder: (context, index) {
-                final movieType = movieTypes[index];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedMovieType = movieType;
-                    });
-                  },
-                  child: Container(
-                    width: 70,
-                    height: 35,
-                    margin: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[300], // 設置按鈕區域的背景色為馬卡龍藍色
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getMovieTypeName(movieType),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // 另一個水平滾動的 widget 區域
-          Expanded(
+          // 綠色區域
+          Positioned.fill(
+            top: 60, // 使下面的 Container 與頂部有一定間距
             child: Container(
               color: Colors.green[100], // 設置背景色為馬卡龍綠色
-              child: ListView.builder(
+              child: Align(
+                alignment: Alignment.topLeft, // 確保內容從左側開始對齊
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // 確保 Row 根據子 Widget 的大小來設置寬度
+                    children: movies[_selectedMovieType]?.map((movie) {
+                      final imagePath = 'assets/movie/${_getMovieTypeName(_selectedMovieType)}/$movie.png';
+                      return MovieItem(
+                        imagePath: imagePath,
+                        movieType: _getMovieTypeName(_selectedMovieType),
+                        movieName: movie,
+                        imageWidth: 200 / 6 * 4, // 設置圖片寬度
+                      );
+                    }).toList() ?? [],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // 黃色背景色的 Container
+          Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              height: 60,
+              color: Colors.yellow[100], // 設置背景色為馬卡龍黃色
+              child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                itemCount: movies[_selectedMovieType]?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final movie = movies[_selectedMovieType]![index];
-                  final imagePath = 'assets/movie/${_getMovieTypeName(_selectedMovieType)}/$movie.png';
-                  return MovieItem(
-                    imagePath: imagePath,
-                    movieType: _getMovieTypeName(_selectedMovieType),
-                    movieName: movie,
-                    imageWidth: 200 / 6 * 4, // 設置圖片寬度
-                  );
-                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min, // 確保 Row 根據子 Widget 的大小來設置寬度
+                  children: movieTypes.map((movieType) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedMovieType = movieType;
+                        });
+                      },
+                      child: Container(
+                        width: 70,
+                        height: 35,
+                        margin: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[300], // 設置按鈕區域的背景色為馬卡龍藍色
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _getMovieTypeName(movieType),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),
@@ -143,9 +148,6 @@ class MovieItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 計算圖片和文字的總高度
-        double itemHeight = 200 + 8.0 * 2 + 12 + 14; // 圖片高度 + 上下間距 + 文字類型高度 + 文字名稱高度
-
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0), // 設置左右間距
           width: imageWidth, // 設置 Container 寬度與圖片一致
@@ -182,21 +184,21 @@ class MovieItem extends StatelessWidget {
                 ),
               ),
               // 電影標題
-              Text(
-                movieName,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  movieName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2, // 限制最多兩行
+                  overflow: TextOverflow.ellipsis, // 超出部分顯示省略號
                 ),
               ),
             ],
           ),
-          height: itemHeight, // 設置容器高度
         );
       },
     );
   }
 }
-
-
-
